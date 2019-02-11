@@ -155,9 +155,6 @@
     "react/promise": {
         "version": "v2.7.1"
     },
-    "ruflin/elastica": {
-        "version": "6.1.1"
-    },
     "sensio/framework-extra-bundle": {
         "version": "5.2",
         "recipe": {
