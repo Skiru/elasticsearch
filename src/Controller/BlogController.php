@@ -14,6 +14,7 @@ namespace App\Controller;
 use App\Entity\Comment;
 use App\Entity\Post;
 use App\Events;
+use App\Factory\ElasticSearchClientFactory;
 use App\Form\CommentType;
 use App\Repository\PostRepository;
 use App\Repository\TagRepository;
@@ -170,5 +171,49 @@ class BlogController extends AbstractController
         }
 
         return $this->json($results);
+    }
+
+    /**
+     * @Route("/esearch", methods={"GET"}, name="blog_esearch")
+     *
+     * @param Request $request
+     * @param PostRepository $posts
+     * @param ElasticSearchClientFactory $elasticClient
+     * @return Response
+     */
+    public function elasticSearch(Request $request, PostRepository $posts, ElasticSearchClientFactory $elasticClient): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            return $this->render('blog/esearch.html.twig');
+        }
+
+        $q = $request->query->get('q', '');
+//        $limit = $request->query->get('l', 10);
+
+        $params = [
+            'index' => 'articles',
+            'type' => 'article',
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'should' => [
+                            [ 'match' => [ 'title' => $q ] ],
+                            [ 'match' => [ 'slug' => $q ] ],
+                            [ 'match' => [ 'summary' => $q ] ],
+                            [ 'match' => [ 'content' => $q ] ],
+                            [ 'match' => [ 'publishedAt' => $q ] ],
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $posts = $elasticClient->getClient()->search($params);
+        $response = [];
+        foreach ($posts['hits']['hits'] as $hit) {
+            $response[] = $hit['_source'];
+        }
+
+        return $this->json($response);
     }
 }

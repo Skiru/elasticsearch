@@ -1,0 +1,95 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+PUT localhost:9200/tutorial
+
+###
+
+POST localhost:9200/tutorial/_doc
+Content-Type: application/json
+
+{
+  "name2": "jakis tekst drugi johny bravo 2"
+}
+
+###
+
+GET localhost:9200/tutorial/_search?q=johny&sort=name:DESC
+
+###
+
+GET localhost:9200/tutorial/_doc/dB9b52gB_en6w93zzttx
+
+###
+
+GET localhost:9200/tutorial/_search
+Content-Type: application/json
+
+{
+  "query" : {
+  "wildcard" : {
+  "name": "jakis te*"
+  }
+  }
+//  "_source" : ["_id"]
+}
+
+###
+
+GET localhost:9200/tutorial
+
+###
+
+PUT localhost:9200/tutorial/_doc/dB9b52gB_en6w93zzttx?version=3
+Content-Type: application/json
+
+{
+  "name": "teskt zamiast johnego bravo"
+}
+
+###
+
+DELETE localhost:9200/tutorial/_doc/dB9b52gB_en6w93zzttx?version=4
+
+###
+
+GET localhost:9200/tutorial/_doc/dB9b52gB_en6w93zzttx?version=3
+
+###
+
+PUT localhost:9200/tutorial/_doc/dR9f52gB_en6w93zTtuk
+Content-Type: application/json
+
+{
+  "name2": "jakis tekst drugi johny bravo 2 adfga dfsa"
+}
+
+### oba usunely
+
+PATCH localhost:9200/tutorial/_doc/dR9f52gB_en6w93zTtuk
+Content-Type: application/json
+
+{
+  "description": "jakis tam desc"
+}
+
+###
+
+GET localhost:9200/tutorial/_doc/dR9f52gB_en6w93zTtuk
+
+###
+
+
+###tokenizacja / mapping
+
+GET localhost:9200/articles/article/_search
+
+###
+
+DELETE localhost:9200/articles
+
+###

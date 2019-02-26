@@ -3,11 +3,12 @@
 namespace App\Command;
 
 use App\Entity\Post;
+use App\Factory\ElasticSearchClientFactory;
 use App\Repository\PostRepository;
-use Elasticsearch\ClientBuilder;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class CreateIndexForAllPosts extends Command
 {
@@ -19,21 +20,37 @@ class CreateIndexForAllPosts extends Command
     private $postRepository;
 
     /**
+     * @var ElasticSearchClientFactory
+     */
+    private $elasticSearchClientFactory;
+
+    /**
+     * @var UrlGeneratorInterface
+     */
+    private $urlGenerator;
+
+    /**
      * CreateIndexForAllPosts constructor.
      * @param PostRepository $postRepository
+     * @param ElasticSearchClientFactory $elasticSearchClientFactory
+     * @param UrlGeneratorInterface $urlGenerator
      */
-    public function __construct(PostRepository $postRepository)
-    {
+    public function __construct(
+        PostRepository $postRepository,
+        ElasticSearchClientFactory $elasticSearchClientFactory,
+        UrlGeneratorInterface $urlGenerator
+    ) {
         parent::__construct();
 
         $this->postRepository = $postRepository;
+        $this->elasticSearchClientFactory = $elasticSearchClientFactory;
+        $this->urlGenerator = $urlGenerator;
     }
 
     protected function configure()
     {
         $this
-            ->setDescription('Indexing all posts')
-        ;
+            ->setDescription('Indexing all posts');
     }
 
     /**
@@ -43,36 +60,30 @@ class CreateIndexForAllPosts extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('Instantiate Elasticsearch client');
-
-        $hosts = [
-            'elasticsearch:9200'
-        ];
-
-        $client = ClientBuilder::create()
-            ->setHosts($hosts)
-            ->build();
-
-        $output->writeln('Begin indexing all posts');
-
-        $posts = $this->postRepository->findAll();
-
         /**
          * @var Post $post
          */
-        foreach ($posts as $post) {
+        foreach ($this->postRepository->findAll() as $post) {
             $params = [
                 'index' => 'articles',
                 'type' => 'article',
                 'body' => [
+                    'id' => $post->getId(),
                     'title' => $post->getTitle(),
                     'slug' => $post->getSlug(),
                     'summary' => $post->getSummary(),
                     'content' => $post->getContent(),
                     'publishedAt' => $post->getPublishedAt()->format('m/d/Y'),
+                    'url' => $this
+                        ->urlGenerator
+                        ->generate(
+                            'blog_post',
+                            ['slug' => $post->getSlug()],
+                            UrlGeneratorInterface::ABSOLUTE_PATH
+                        )
                 ]
             ];
-            $response = $client->index($params);
+            $response = $this->elasticSearchClientFactory->getClient()->index($params);
 
             if ($response['result'] !== "created") {
                 $output->writeln('Error during indexing.  Closing...');
