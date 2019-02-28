@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class CreateIndexForAllPosts extends Command
+class IndexPosts extends Command
 {
     protected static $defaultName = 'app:index-posts';
 
@@ -30,7 +30,7 @@ class CreateIndexForAllPosts extends Command
     private $urlGenerator;
 
     /**
-     * CreateIndexForAllPosts constructor.
+     * IndexPosts constructor.
      * @param PostRepository $postRepository
      * @param ElasticSearchClientFactory $elasticSearchClientFactory
      * @param UrlGeneratorInterface $urlGenerator
@@ -49,8 +49,7 @@ class CreateIndexForAllPosts extends Command
 
     protected function configure()
     {
-        $this
-            ->setDescription('Indexing all posts');
+        $this->setDescription('Indexing all posts');
     }
 
     /**
@@ -67,13 +66,16 @@ class CreateIndexForAllPosts extends Command
             $params = [
                 'index' => 'articles',
                 'type' => 'article',
+                'id' => $post->getId(),
                 'body' => [
                     'id' => $post->getId(),
                     'title' => $post->getTitle(),
                     'slug' => $post->getSlug(),
                     'summary' => $post->getSummary(),
+                    'author' => $post->getAuthor()->getFullName(),
                     'content' => $post->getContent(),
-                    'publishedAt' => $post->getPublishedAt()->format('m/d/Y'),
+                    'date' => $post->getPublishedAt()->format('m/d/Y'),
+                    'raw_date' => $post->getPublishedAt()->format('m/d/Y'),
                     'url' => $this
                         ->urlGenerator
                         ->generate(

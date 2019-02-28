@@ -7,6 +7,10 @@ use Elasticsearch\ClientBuilder;
 
 class ElasticSearchClientFactory
 {
+    const HOSTS = [
+        'elasticsearch:9200'
+    ];
+
     /**
      * @var Client
      */
@@ -17,11 +21,8 @@ class ElasticSearchClientFactory
      */
     public function __construct()
     {
-        $hosts = [
-            'elasticsearch:9200'
-        ];
         $this->client = ClientBuilder::create()
-            ->setHosts($hosts)
+            ->setHosts(self::HOSTS)
             ->build();
     }
 
